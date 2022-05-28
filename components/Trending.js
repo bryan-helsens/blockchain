@@ -312,10 +312,16 @@ const Trending = () => {
     let [trendingCoins, setTrendingCoins] = useState(null)
     const [checked, setChecked] = useState(true)
 
-    useEffect(() => {
-        TrendingCoins()
-        //if (checked) setTrendingCoins(testData[0].data.data)
-    }, [])
+    const TrendingCoins = useCallback(async () => {
+      try {
+          let apiResponse = await getTrendingCoins()
+          return apiResponse
+
+      } catch (e) {
+          console.error(e)
+      }
+  }, [getTrendingCoins])
+
 
 
 
@@ -326,24 +332,36 @@ const Trending = () => {
       //if (checked) setTrendingCoins(testData[0].data.data)
     }
 
-    const TrendingCoins = useCallback(async () => {
-        try {
-            let apiResponse = await getTrendingCoins()
-            let coinsData = []
+    const getTrendingData = useCallback (async (data) => {
+      let coinsData = []
 
-            await apiResponse.map(async (item, index) => {
-              console.log(item.item, 'item');
-              let apiResponseData = await getCoinDataWithID(item.item.id)
+      console.log(data);
 
-              coinsData.push(apiResponseData[0])
-            })
+      await data.map(async (item, index) => {
+        console.log(item.item, 'item');
+        let apiResponseData = await getCoinDataWithID(item.item.id)
 
-            setTrendingCoins(coinsData)
+        coinsData.push(apiResponseData[0])
+      })
 
-        } catch (e) {
-            console.error(e)
-        }
-    }, [getTrendingCoins, getCoinDataWithID])
+      setTrendingCoins(null)
+      setTrendingCoins(coinsData)
+
+    },[])
+
+
+    useEffect(async () => {
+      let data = await TrendingCoins()
+      await getTrendingData(data)
+
+    }, [TrendingCoins, getTrendingData])
+
+
+   
+
+
+
+ 
 
 
     console.log(trendingCoins, "boe");
